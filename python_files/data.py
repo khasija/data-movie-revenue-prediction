@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import csv
 
 
 class GetData:
@@ -25,23 +26,26 @@ class GetData:
             csv_path = path +'/data'          
                         
             file_names = []
-            for item in os.listdir('../data-movie-revenue-prediction/data'):
+            for item in os.listdir('../data/'):
                 if(item.endswith('.csv')):
-                    file_names.append(item)
+                    file_names.append(item)                     
                     
             key_names = []
             for file_name in file_names:
                 if(file_name.endswith('.csv')):
-                    file_name = file_name[:-len('.csv')]    
+                    file_name = file_name[:-len('.csv')]                        
                 # if(file_name.endswith('.csv')):
                 #     file_name = file_name[:-4]
                 # if(file_name.startswith('olist')):
                 #     file_name = file_name.replace('olist_', '')
-                key_names.append(file_name)
+                    key_names.append(file_name)
             
             data_temp = {}
             for(key, value) in zip(key_names, file_names):
-                data_temp[key]=pd.read_csv(f'../data-movie-revenue-prediction/data/{value}')
+                if key == 'AllMoviesCastingRaw':
+                    data_temp[key]=pd.read_csv(f'../data/{value}', delimiter= ';', low_memory= False)
+                else:                     
+                    data_temp[key]=pd.read_csv(f'../data/{value}', low_memory= False)
                 
             self.data = data_temp
             

@@ -1,13 +1,14 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
+from python_files.data import GetData
 from sklearn.model_selection import train_test_split
 from python_files.fetch_missing_data import fetch_missing_data
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.dummy import DummyRegressor
+from datetime import datetime
 
-class Preprocessing:
+
+class Advancedprocessing:
     # count the number of possible returns per variable
     def total_count(data, header, topk=30):
         '''
@@ -37,12 +38,10 @@ class Preprocessing:
 
         return dataset
     
-    def clean(df, headers, list_top_30=[], train_set=True):
+    def process(df, list_top_30=[], train_set=True):
         '''
         Function to clean a dataframe
-        Args: df = dataframe
-            headers = list containing names of column headers that need 
-                        to be converted from strings to dicts
+        Args: df = dataframe            
             list_top_30 = list; default value is empty list; otherwise it can hold
                             list with lists of top 30 results from specific columns
             train = boolean; True by default; designates whether the dataframe is
@@ -52,62 +51,66 @@ class Preprocessing:
         '''
         df_copy = df.copy()
         
-        # keep only dataset with revenue greater than 3K and budget greater than 30k
-        df_copy = df_copy[(df_copy['revenue'] > 3000) & (df_copy['budget'] > 300000)]
+        # fetch the cast details as dataframe and merge it to df_copy
+        df_cast = GetData().get_data()['AllMoviesCastingRaw']
+        df_copy = df_copy.merge(df_cast, on = 'id', how = 'left')         
         
-        # remove duplicates
-        df.drop_duplicates(inplace = True)
+        # drop rows with null values in numeric variables
+        # df_copy = df_copy.dropna(axis=0, how='any', subset=['release_date'])
+        df_copy['release_date'] = pd.to_datetime(df_copy['release_date'], infer_datetime_format=True)
         
         ## Numerical Data Preprocessing        
         
         # convert the data type of Popularity
-        df_copy['popularity'] = pd.to_numeric(df_copy['popularity'])
+        # df_copy['popularity'] = pd.to_numeric(df_copy['popularity'])
+        
+        # add year
+        df_copy['release_year'] = df_copy['release_date'].dt.year
+        # df_copy['release_year'] = df_copy['release_year'].astype('int32')
+        # add month
+        df_copy['release_month'] = df_copy['release_date'].dt.month
+        # add week
+        df_copy['release_week'] = df_copy['release_date'].dt.dayofweek
+        # add weekday
+        df_copy['release_weekday'] = df_copy['release_date'].dt.day_name()
         
         # add budget-year-ratio
         df_copy['release_year'] = df_copy['release_year'].astype('int32')
         df_copy['budget_year_ratio'] = round(df_copy['budget']/df_copy['release_year'], 2)
         
-        ## Categorical Data Preprocessing
-        
-        # add column with 1 if movie belongs to any collection and 0 if it does not belong to any collection
-        df_copy['collection'] = df_copy['belongs_to_collection'].apply(lambda x: 1 if x != 'missing_value' else 0)
-        
-        # add year
-        df_copy['release_year'] = df_copy['release_date'].map(lambda x: str(19) + x[-2:] if int(x[-2:]) > 17 else str(20) + x[-2:])
-        df_copy['release_year'] = df_copy['release_year'].astype('int32')
-        # add month
-        df_copy['release_month'] = df_copy['release_date'].map(lambda x: int(x[:2]) if x[1] != '/' else int(x[:1]))
-        # add week
-        df_copy['release_week'] = df_copy['release_date'].apply(lambda x: datetime.strptime(x, '%m/%d/%y').isocalendar()[1])
-        # add weekday
-        df_copy['release_weekday'] = df_copy['release_date'].apply(lambda x: datetime.strptime(x, '%m/%d/%y').strftime('%A'))
-        
+        ## Categorical Data Preprocessing      
+               
         # one-hot encode month variables
-        one_hot_month = pd.get_dummies(df['release_month'], prefix='month')
+        # one_hot_month = pd.get_dummies(df['release_month'], prefix='month')
         # one-hot-encode weekday variable
-        one_hot_weekday = pd.get_dummies(df['release_weekday'], prefix='weekday')
+        # one_hot_weekday = pd.get_dummies(df['release_weekday'], prefix='weekday')
         
-        df = df.join(one_hot_month)
-        df = df.join(one_hot_weekday)
+        # df = df.join(one_hot_month)
+        # df = df.join(one_hot_weekday)
         
         # add top thirty values as columns for below features
         top_30_vars = ['actor1_name', 'director_name', 'producer_name', 'production_companies']
         if train_set:
             for var in top_30_vars:
-                top_k_var = total_count(df, var)
+                top_k_var = Advancedprocessing.total_count(df_copy, var)
                 list_top_30.append(top_k_var)
-                cleaned_df = add_top_30(df, var, top_k_var)
+                cleaned_df = Advancedprocessing.add_top_30(df_copy, var, top_k_var)
         else:
             for i in range(len(top_30_vars)):
-                cleaned_df = add_top_30(df, top_30_vars[i], list_top_30[i])
+                cleaned_df = Advancedprocessing.add_top_30(df_copy, top_30_vars[i], list_top_30[i])
                 
-        col_list = ['belongs_to_collection', 'genres', 'spoken_languages', 
+        col_list = [ 'genres', 
                     'production_companies', 'production_countries', 
-                    'original_language', 'original_title', 'status', 'poster_path', 'release_date', 'release_month',
-                    'release_weekday', 'id', 'imdb_id', 'overview', 'tagline']
+                    'original_language', 'original_title', 'release_date', 'release_month',
+                    'release_weekday', 'id']
     
         for item in col_list:
             cleaned_df.drop(item, axis=1, inplace=True)
+            
+         # Reset the index so I will be able to match the revenue, title and budget to the rows later on
+        cleaned_df = cleaned_df.reset_index()
+        
+        return cleaned_df
         
         
 
