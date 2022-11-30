@@ -42,10 +42,20 @@ class GetData:
             data_temp = {}
             for(key, value) in zip(key_names, file_names):
                 if key == 'AllMoviesCastingRaw':
-                    data_temp[key]=pd.read_csv(f'../data/{value}', delimiter= ';', low_memory= False, encoding = "ISO-8859-1")
+                    data_temp[key]=pd.read_csv(f'../data/{value}', delimiter= ';', low_memory= False)
                 else:                     
-                    data_temp[key]=pd.read_csv(f'../data/{value}', low_memory= False, encoding = "ISO-8859-1")
+                    data_temp[key]=pd.read_csv(f'../data/{value}', low_memory= False)
                 
             self.data = data_temp
             
         return self.data
+
+    def get_merge_data(self):
+        
+        df = GetData.get_data()['AllMoviesDetailsCleaned']
+
+        # fetch the cast details as dataframe and merge it to df_copy
+        df_cast = GetData().get_data()['AllMoviesCastingRaw']
+        df = df.merge(df_cast, on = 'id', how = 'left')
+
+        return df
