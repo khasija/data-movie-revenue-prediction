@@ -9,8 +9,7 @@ class GetData:
         
     def get_data(self):
         """
-        This function returns a Python dict.
-        Its keys should be 'sellers', 'orders', 'order_items' etc...
+        This function returns a dataframe.        
         Its values should be pandas.DataFrames loaded from csv files
         """      
         
@@ -43,9 +42,9 @@ class GetData:
             data_temp = {}
             for(key, value) in zip(key_names, file_names):
                 if key == 'AllMoviesCastingRaw':
-                    data_temp[key]=pd.read_csv(f'../data/{value}', delimiter= ';', low_memory= False)
+                    data_temp[key]=pd.read_csv(f'../data/{value}', delimiter= ';', low_memory= False, encoding= 'utf-8')
                 else:                     
-                    data_temp[key]=pd.read_csv(f'../data/{value}', low_memory= False)
+                    data_temp[key]=pd.read_csv(f'../data/{value}', low_memory= False, encoding= 'utf-8')
                 
             self.data = data_temp
             
