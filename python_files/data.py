@@ -42,9 +42,9 @@ class GetData:
             data_temp = {}
             for(key, value) in zip(key_names, file_names):
                 if key == 'AllMoviesCastingRaw':
-                    data_temp[key]=pd.read_csv(f'../data/{value}', delimiter= ';', low_memory= False, encoding= 'utf-8')
+                    data_temp[key]=pd.read_csv(f'../data/{value}', delimiter= ';', low_memory= False, encoding = "ISO-8859-1")
                 else:                     
-                    data_temp[key]=pd.read_csv(f'../data/{value}', low_memory= False, encoding= 'utf-8')
+                    data_temp[key]=pd.read_csv(f'../data/{value}', low_memory= False, encoding = "ISO-8859-1")
                 
             self.data = data_temp
             
