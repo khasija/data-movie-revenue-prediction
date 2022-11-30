@@ -49,3 +49,13 @@ class GetData:
             self.data = data_temp
             
         return self.data
+
+    def get_merge_data(self):
+        
+        df = GetData.get_data()['AllMoviesDetailsCleaned']
+
+        # fetch the cast details as dataframe and merge it to df_copy
+        df_cast = GetData().get_data()['AllMoviesCastingRaw']
+        df = df.merge(df_cast, on = 'id', how = 'left')
+
+        return df
