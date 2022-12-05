@@ -49,8 +49,8 @@ class Advancedprocessing:
         df_copy = df.copy()
         
         # fetch the cast details as dataframe and merge it to df_copy
-        df_cast = GetData().get_data()['AllMoviesCastingRaw']
-        df_copy = df_copy.merge(df_cast, on = 'id', how = 'left')         
+        # df_cast = GetData().get_data()['AllMoviesCastingRaw']
+        # df_copy = df_copy.merge(df_cast, on = 'id', how = 'left')         
         
         # drop rows with null values in numeric variables
         df_copy = df_copy.dropna(axis=0, how='any', subset=['release_date'])
@@ -68,9 +68,11 @@ class Advancedprocessing:
         df_copy['release_month'] = df_copy['release_date'].dt.month
         
         # add week
-        df_copy['release_week'] = df_copy['release_date'].dt.dayofweek
+        df_copy['release_week'] = df_copy['release_date'].dt.isocalendar().week
         df_copy['week_sin'] = np.sin(2 * np.pi * df_copy['release_week']/52.0)
         df_copy['week_cos'] = np.cos(2 * np.pi * df_copy['release_week']/52.0)
+        
+        # df_copy[['week_sin', 'week_cos']].astype('float64', inplace = True)
 
         # add weekday
         df_copy['release_weekday'] = df_copy['release_date'].dt.day_name()
@@ -101,9 +103,12 @@ class Advancedprocessing:
                 cleaned_df = Advancedprocessing.add_top_30(df_copy, var, top_k_var)
         else:
             for i in range(len(top_30_vars)):
+                # print(top_30_vars[i])
+                # print(list_top_30[i])
                 cleaned_df = Advancedprocessing.add_top_30(df_copy, top_30_vars[i], list_top_30[i])
 
         # scale the budget and runtime 
+        3
         ## convert budget into logscale
 
         # df_copy['budget'] = df_copy['budget'].apply(lambda x: np.log(x + 1))     
