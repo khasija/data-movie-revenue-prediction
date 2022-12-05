@@ -42,7 +42,7 @@ def background_image_style(path):
     '''
     return style
 
-image_path = 'data/cinema-1269996.jpg'
+image_path = 'images/cinema-1269996.jpg'
 
 st.write(background_image_style(image_path), unsafe_allow_html=True)
 
