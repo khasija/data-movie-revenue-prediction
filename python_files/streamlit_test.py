@@ -3,11 +3,14 @@ import pandas as pd
 import imdb
 import shap
 import matplotlib.pyplot as plt
-from sklearn import datasets
-from sklearn.ensemble import RandomForestRegressor
 import json
 import requests
 st.set_option('deprecation.showPyplotGlobalUse', False)
+import pickle
+from python_files.dataframe_transformer import DataframeTransformer
+from python_files.genre_transformer import GenreTranformer
+from python_files.cast_transformer import CastTransformer
+import numpy as np
 
 st.write("""
 # Movie Revenue Prediction App
@@ -15,33 +18,25 @@ This app predicts the **Movie Revenue**!
 """)
 st.write('---')
 
-# Loads the Boston House Price Dataset
-boston = datasets.load_boston()
-X = pd.DataFrame(boston.data, columns=boston.feature_names)
-Y = pd.DataFrame(boston.target, columns=["MEDV"])
-
 # Sidebar
 # Header of Specify Input Parameters
-st.sidebar.header('Specify Input Movie Name')
+# st.sidebar.header('Specify Input Movie Name')
 
-def user_input_features():
-    sel_col, disp_col = st.columns(2)
-    movie_name = sel_col.text_input('Which movie do you want to predict?')
-
+def user_input_features(movie_name):
     ia = imdb.Cinemagoer()
     search = ia.search_movie_advanced(movie_name)
-    
+
     # getting the id
     imdb_id = search[0].movieID
-    url = f'https://api.themoviedb.org/3/find/tt{imdb_id}?api_key=279ec8b5e677bfd655c30c6403e14469&external_source=imdb_id'            
-    response = requests.get(url)    
+    url = f'https://api.themoviedb.org/3/find/tt{imdb_id}?api_key=279ec8b5e677bfd655c30c6403e14469&external_source=imdb_id'
+    response = requests.get(url)
     info = response.json()
     movie_id = info['movie_results'][0]['id']
 
     df = {}
-    url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key=279ec8b5e677bfd655c30c6403e14469'           
+    url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key=279ec8b5e677bfd655c30c6403e14469'
     response = requests.get(url)
-    df['budget'] = int(json.dumps(response.json()['budget']))
+    df['budget'] = response.json()['budget']
     df['release_date'] = response.json()['release_date']
     df['production_companies'] = response.json()['production_companies'][0]['name']
     df['production_companies_number'] = len(response.json()['production_companies'])
@@ -58,9 +53,9 @@ def user_input_features():
     df['vote_average'] = float(response.json()['vote_average'])
     df['vote_count'] = int(response.json()['vote_count'])
     df['belongs_to_collection'] = response.json()['belongs_to_collection']
-    
-    
-    url = f'https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key=279ec8b5e677bfd655c30c6403e14469'           
+
+
+    url = f'https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key=279ec8b5e677bfd655c30c6403e14469'
 
             # get the response
     response = requests.get(url)
@@ -85,39 +80,37 @@ def user_input_features():
     df['producer_number'] = producer_number
     df['actor_number'] = actor_number
     features = pd.DataFrame(df, index=['Value'])
-    
+
     return features
 
-df = user_input_features()
+sel_col, disp_col = st.columns(2)
+movie_name = sel_col.text_input('Which movie do you want to predict?')
+if movie_name:
+    df = user_input_features(movie_name)
+    st.header('Specified Input parameters')
+    st.write(df)
+    st.write('---')
+    my_pipeline = pickle.load(open("model/xgb_model.pkl","rb"))
 
-# Main Panel
+    prediction = my_pipeline.predict(df)
 
-# Print specified input parameters
-st.header('Specified Input parameters')
-st.write(df)
-st.write('---')
+    st.header('Prediction of Revenue')
 
-# Build Regression Model
-model = RandomForestRegressor()
-model.fit(X, Y)
-# Apply Model to Make Prediction
-# prediction = model.predict(df)
+    prediction = np.expm1(prediction)
+    st.write(prediction)
+# st.write('---')
 
-st.header('Prediction of Revenue')
-# st.write(prediction)
-st.write('---')
+# # Explaining the model's predictions using SHAP values
+# # https://github.com/slundberg/shap
+# explainer = shap.TreeExplainer(model)
+# shap_values = explainer.shap_values(X)
 
-# Explaining the model's predictions using SHAP values
-# https://github.com/slundberg/shap
-explainer = shap.TreeExplainer(model)
-shap_values = explainer.shap_values(X)
+# st.header('Feature Importance')
+# plt.title('Feature importance based on SHAP values')
+# shap.summary_plot(shap_values, X)
+# st.pyplot(bbox_inches='tight')
+# st.write('---')
 
-st.header('Feature Importance')
-plt.title('Feature importance based on SHAP values')
-shap.summary_plot(shap_values, X)
-st.pyplot(bbox_inches='tight')
-st.write('---')
-
-plt.title('Feature importance based on SHAP values (Bar)')
-shap.summary_plot(shap_values, X, plot_type="bar")
-st.pyplot(bbox_inches='tight')
+# plt.title('Feature importance based on SHAP values (Bar)')
+# shap.summary_plot(shap_values, X, plot_type="bar")
+# st.pyplot(bbox_inches='tight')
