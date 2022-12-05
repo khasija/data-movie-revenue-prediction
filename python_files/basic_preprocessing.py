@@ -1,22 +1,28 @@
 
 import pandas as pd
+from sklearn.base import TransformerMixin, BaseEstimator
 
-class BasicPreprocessing:
-    def __init__(self) -> None:
-        pass
+class BasicPreprocessing(TransformerMixin, BaseEstimator):
+    def __init__(self, train_set = True):
+        self.train_set = train_set
+
+    # def fit(self, X, y=None):        
+    #     return self
     
-    def apply(data):
+    def apply(self, X, y=None):
         '''
         Function to return the clean dataframe after applying basic preprocessing steps
         Args: data = dataframe            
         Returns: data_cleaned =  dataframe
     '''
         # make copy of data
-        df = data.copy()
-        
-        # 1. keep only dataset with revenue greater than 3K and budget greater than 30k
-        df = df[(df['revenue'] > 3000) & (df['budget'] > 300000)]
-        df = df[( df['revenue'] < 1519557910) & ( df['budget'] < 260000000)]
+        df = X.copy()
+        if self.train_set:
+            # 1. keep only dataset with revenue greater than 3K and budget greater than 30k
+            df = df[(df['revenue'] > 3000) & (df['budget'] > 300000)]
+            df = df[( df['revenue'] < 1519557910) & ( df['budget'] < 260000000)]
+        # else:
+        #     df = df[(df['budget'] > 300000) & (df['budget'] < 260000000)]
     
         # 2. Remove Duplicates
         df.drop_duplicates(inplace = True)
