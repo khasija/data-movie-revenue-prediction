@@ -19,7 +19,7 @@ class BasicPreprocessing(TransformerMixin, BaseEstimator):
         df = X.copy()
         if self.train_set:
             # 1. keep only dataset with revenue greater than 3K and budget greater than 30k
-            df = df[(df['revenue'] > 3000) & (df['budget'] > 300000)]
+            df = df[(df['revenue'] > 3000) & (df['budget'] > 30000)]
             df = df[( df['revenue'] < 1519557910) & ( df['budget'] < 260000000)]
         # else:
         #     df = df[(df['budget'] > 300000) & (df['budget'] < 260000000)]
