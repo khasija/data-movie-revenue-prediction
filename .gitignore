@@ -5,3 +5,4 @@
 **/*.pyc
 notebooks/.ipynb_checkpoints/*
 **/*Zone.Identifier
+.streamlit/secrets.toml

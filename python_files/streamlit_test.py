@@ -12,6 +12,7 @@ from python_files.genre_transformer import GenreTranformer
 from python_files.cast_transformer import CastTransformer
 import numpy as np
 
+
 st.write("""
 # Movie Revenue Prediction App
 This app predicts the **Movie Revenue**!
@@ -28,13 +29,13 @@ def user_input_features(movie_name):
 
     # getting the id
     imdb_id = search[0].movieID
-    url = f'https://api.themoviedb.org/3/find/tt{imdb_id}?api_key=279ec8b5e677bfd655c30c6403e14469&external_source=imdb_id'
+    url = f'https://api.themoviedb.org/3/find/tt{imdb_id}?api_key={st.secrets["tmdb_key"]}&external_source=imdb_id'
     response = requests.get(url)
     info = response.json()
     movie_id = info['movie_results'][0]['id']
 
     df = {}
-    url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key=279ec8b5e677bfd655c30c6403e14469'
+    url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key={st.secrets["tmdb_key"]}'
     response = requests.get(url)
     df['budget'] = response.json()['budget']
     df['release_date'] = response.json()['release_date']
