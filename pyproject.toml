@@ -7,7 +7,7 @@ readme = "README.md"
 #packages = [{include = "data_movie_revenue_prediction"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8.12,<3.9"
 sklearn = "^0.0.post1"
 pandas = "^1.5.2"
 numpy = "^1.23.5"
