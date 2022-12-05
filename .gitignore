@@ -2,3 +2,6 @@
 /data/*
 /notebooks/movie_revenue_predict.ipynb
 /notebooks/MovieRevenuePred_1.ipynb
+**/*.pyc
+notebooks/.ipynb_checkpoints/*
+**/*Zone.Identifier
