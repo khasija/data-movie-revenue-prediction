@@ -12,6 +12,8 @@ from python_files.genre_transformer import GenreTranformer
 from python_files.cast_transformer import CastTransformer
 import numpy as np
 
+MODEL_PATH = "model/xgb_model.pkl"
+
 
 st.write("""
 # Movie Revenue Prediction App
@@ -91,7 +93,7 @@ if movie_name:
     st.header('Specified Input parameters')
     st.write(df)
     st.write('---')
-    my_pipeline = pickle.load(open("model/xgb_model.pkl","rb"))
+    my_pipeline = pickle.load(open(MODEL_PATH,"rb"))
 
     prediction = my_pipeline.predict(df)
 
