@@ -24,6 +24,11 @@ jupyter = "^1.0.0"
 imdbpy = "^2022.7.9"
 black = "^22.10.0"
 isort = "^5.10.1"
+networkx = { extras = ["default"], version = "^2.8.8" }
+pygraphviz = "^1.10"                                    # may require sudo apt install graphviz-dev
+pydot = "^1.4.2"
+pydantic = "^1.10.2"
+bokeh = "^3.0.2"
 
 [build-system]
 requires = ["poetry-core"]
