@@ -9,11 +9,7 @@ import streamlit as st
 import altair as alt
 
 st.set_page_config(
-    page_title="Alchemy",
-    page_icon=":)",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items=None
+    page_title="Alchemy", page_icon=":)", layout="wide", initial_sidebar_state="expanded", menu_items=None
 )
 
 st.set_option("deprecation.showPyplotGlobalUse", False)
@@ -28,22 +24,41 @@ from python_files.genre_transformer import GenreTranformer
 MODEL_PATH = "model/xgb_model.pkl"
 import base64
 
+
+def load_pipeline():
+    return pickle.load(open(MODEL_PATH, "rb"))
+
+
+def predict(pipeline, data):
+    return pipeline.predict(data)
+
+
+if "pipeline" not in st.session_state:
+    st.session_state["pipeline"] = load_pipeline()
+
+
 tab1, tab2 = st.tabs(["Exitsing movies", "New movie"])
 with tab1:
     with st.container():
-        st.markdown("""
+        st.markdown(
+            """
                     <style>
                     .big-font {
                     font-size:150px !important;
                     } </style>
-                    """, unsafe_allow_html=True)
+                    """,
+            unsafe_allow_html=True,
+        )
         st.markdown('<p class="big-font">Believe the RMSE ...</p>', unsafe_allow_html=True)
-        st.markdown("""
+        st.markdown(
+            """
                     <style>
                     .big-font2 {
                     font-size:100px !important;
                     } </style>
-                    """, unsafe_allow_html=True)
+                    """,
+            unsafe_allow_html=True,
+        )
         st.markdown('<p class="big-font2">#FastForwardYourFuture</p>', unsafe_allow_html=True)
 
         # You can call any Streamlit command, including custom components:
@@ -174,9 +189,7 @@ with tab1:
                     # st.write(df)
                     # st.write("---")
 
-
-                    my_pipeline = pickle.load(open(MODEL_PATH, "rb"))
-                    prediction = my_pipeline.predict(df)
+                    prediction = predict(st.session_state["pipeline"], df)
                     revenue = df["Revenue"]
                     _revenue = [revenue[0]]
                     # st.header("Prediction of Revenue")
@@ -200,17 +213,17 @@ with tab1:
                     # st.subheader(df["release_date"][0])
 
     with col3:
-         st.header("Prediction of Revenue")
-         st.subheader(prediction[0])
-    #    revenue = df["Revenue"]
-    #    st.header("Prediction of Revenue")
-    #    prediction = np.expm1(prediction)
-    #    st.write(prediction[0])
-    #    st.write(revenue)
-         fig = {"Revenue": _revenue, "Prediction": _prediction }
-         fig2=pd.DataFrame(fig).T
-         st.bar_chart(data = fig2)
-        #  st.write(fig2)
+        st.header("Prediction of Revenue")
+        st.subheader(prediction[0])
+        #    revenue = df["Revenue"]
+        #    st.header("Prediction of Revenue")
+        #    prediction = np.expm1(prediction)
+        #    st.write(prediction[0])
+        #    st.write(revenue)
+        fig = {"Revenue": _revenue, "Prediction": _prediction}
+        fig2 = pd.DataFrame(fig).T
+        st.bar_chart(data=fig2)
+    #  st.write(fig2)
 
     #    st.subheader("Budget(US Dollar)")
     #    st.subheader(df["budget"][0])
