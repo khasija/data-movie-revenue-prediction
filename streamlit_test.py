@@ -6,6 +6,11 @@ import pandas as pd
 import requests
 import shap
 import streamlit as st
+import altair as alt
+
+st.set_page_config(
+    page_title="Alchemy", page_icon=":)", layout="wide", initial_sidebar_state="expanded", menu_items=None
+)
 
 st.set_option("deprecation.showPyplotGlobalUse", False)
 import pickle
@@ -33,8 +38,31 @@ if "pipeline" not in st.session_state:
 
 
 tab1, tab2 = st.tabs(["Exitsing movies", "New movie"])
-
 with tab1:
+    with st.container():
+        st.markdown(
+            """
+                    <style>
+                    .big-font {
+                    font-size:150px !important;
+                    } </style>
+                    """,
+            unsafe_allow_html=True,
+        )
+        st.markdown('<p class="big-font">Believe the RMSE ...</p>', unsafe_allow_html=True)
+        st.markdown(
+            """
+                    <style>
+                    .big-font2 {
+                    font-size:100px !important;
+                    } </style>
+                    """,
+            unsafe_allow_html=True,
+        )
+        st.markdown('<p class="big-font2">#FastForwardYourFuture</p>', unsafe_allow_html=True)
+
+        # You can call any Streamlit command, including custom components:
+        # st.bar_chart(np.random.randn(50, 3))
 
     # @st.cache
     # def load_image(path):
@@ -64,10 +92,10 @@ with tab1:
 
     # st.write(background_image_style(image_path), unsafe_allow_html=True)
 
-    original_title = (
-        '<p style="font-family:Courier; color:Black; font-size: 30px;">This app predicts the Movie Revenue!</p>'
-    )
-    st.markdown(original_title, unsafe_allow_html=True)
+    # original_title = (
+    #     '<p style="font-family:Courier; color:Black; font-size: 30px;">This app predicts the Movie Revenue!</p>'
+    # )
+    # st.markdown(original_title, unsafe_allow_html=True)
 
     def user_input_features(movie_name):
         try:
@@ -86,10 +114,7 @@ with tab1:
             response = requests.get(url)
 
             backdrop_path = response.json()["backdrop_path"]
-            st.image(
-                "https://image.tmdb.org/t/p/original/" + backdrop_path,
-                width=400,  # Manually Adjust the width of the image as per requirement
-            )
+
             df["budget"] = response.json()["budget"]
             df["release_date"] = response.json()["release_date"]
             df["production_companies"] = response.json()["production_companies"][0]["name"]
@@ -107,6 +132,7 @@ with tab1:
             df["vote_average"] = float(response.json()["vote_average"])
             df["vote_count"] = int(response.json()["vote_count"])
             df["belongs_to_collection"] = response.json()["belongs_to_collection"]
+            df["Revenue"] = response.json()["revenue"]
 
             url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key=279ec8b5e677bfd655c30c6403e14469"
 
@@ -134,25 +160,73 @@ with tab1:
             df["actor_number"] = actor_number
             features = pd.DataFrame(df, index=["Value"])
 
-            return features
+            return features, backdrop_path
         except:
             st.write("Please write correct movie name")
             return pd.DataFrame()
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        movie_name = col1.text_input("Which movie's revenue do you want to predict?")
+        st.header("Which movie's revenue do you want to predict?")
+        movie_name = col1.text_input("")
+        df, path = user_input_features(movie_name)
+        col1 = st.button("Get Revenue")
+
+        st.subheader("Budget(US Dollar):")
+        st.subheader(df["budget"][0])
+        st.subheader("Release Date:")
+        st.subheader(df["release_date"][0])
+
+    _prediction = 0
+    _revenue = 0
     with col2:
-        col2 = st.button("Get Revenue")
+
         if col2:
             if movie_name:
-                df = user_input_features(movie_name)
+                df, path = user_input_features(movie_name)
                 if not df.empty:
-                    st.header("Specified Input parameters")
-                    st.write(df)
-                    st.write("---")
+                    # st.header("Specified Input parameters")
+                    # st.write(df)
+                    # st.write("---")
 
                     prediction = predict(st.session_state["pipeline"], df)
-                    st.header("Prediction of Revenue")
+                    revenue = df["Revenue"]
+                    _revenue = [revenue[0]]
+                    # st.header("Prediction of Revenue")
                     prediction = np.expm1(prediction)
-                    st.write(prediction[0])
+                    _prediction = [prediction[0]]
+                    st.image(
+                        "https://image.tmdb.org/t/p/original/" + path,
+                        width=400,  # Manually Adjust the width of the image as per requirement
+                    )
+                    # st.write(prediction[0])
+                    # st.write(revenue)
+                    # fig = {"Revenue": [revenue[0]], "Prediction": [prediction[0]]}
+                    # fig2=pd.DataFrame(fig).T
+                    # st.bar_chart(data = fig2)
+                    # st.write(fig2)
+
+                    # st.subheader("Budget(US Dollar)")
+                    # st.subheader(df["budget"][0])
+
+                    # st.subheader("Release Date")
+                    # st.subheader(df["release_date"][0])
+
+    with col3:
+        st.header("Prediction of Revenue")
+        st.subheader(prediction[0])
+        #    revenue = df["Revenue"]
+        #    st.header("Prediction of Revenue")
+        #    prediction = np.expm1(prediction)
+        #    st.write(prediction[0])
+        #    st.write(revenue)
+        fig = {"Revenue": _revenue, "Prediction": _prediction}
+        fig2 = pd.DataFrame(fig).T
+        st.bar_chart(data=fig2)
+    #  st.write(fig2)
+
+    #    st.subheader("Budget(US Dollar)")
+    #    st.subheader(df["budget"][0])
+
+    #    st.subheader("Release Date")
+    #    st.subheader(df["release_date"][0])
