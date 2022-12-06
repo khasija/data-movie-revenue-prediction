@@ -19,6 +19,19 @@ from python_files.genre_transformer import GenreTranformer
 MODEL_PATH = "model/xgb_model.pkl"
 import base64
 
+
+def load_pipeline():
+    return pickle.load(open(MODEL_PATH, "rb"))
+
+
+def predict(pipeline, data):
+    return pipeline.predict(data)
+
+
+if "pipeline" not in st.session_state:
+    st.session_state["pipeline"] = load_pipeline()
+
+
 tab1, tab2 = st.tabs(["Exitsing movies", "New movie"])
 
 with tab1:
@@ -139,8 +152,7 @@ with tab1:
                     st.write(df)
                     st.write("---")
 
-                    my_pipeline = pickle.load(open(MODEL_PATH, "rb"))
-                    prediction = my_pipeline.predict(df)
+                    prediction = predict(st.session_state["pipeline"], df)
                     st.header("Prediction of Revenue")
                     prediction = np.expm1(prediction)
                     st.write(prediction[0])
