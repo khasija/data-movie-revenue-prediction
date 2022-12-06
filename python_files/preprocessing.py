@@ -72,6 +72,9 @@ class Advancedprocessing:
         df_copy['week_sin'] = np.sin(2 * np.pi * df_copy['release_week']/52.0)
         df_copy['week_cos'] = np.cos(2 * np.pi * df_copy['release_week']/52.0)
         
+        df_copy[['week_sin','week_cos']] = df_copy[['week_sin','week_cos']].astype('float64')
+        df_copy[['week_sin','week_cos']] = df_copy[['week_sin','week_cos']].astype('float64')
+        
         # df_copy[['week_sin', 'week_cos']].astype('float64', inplace = True)
 
         # add weekday
