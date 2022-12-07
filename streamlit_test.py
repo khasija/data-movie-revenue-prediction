@@ -240,7 +240,7 @@ def page1():
                 
                 with st.spinner('Wait for it...'):
                     df, path, cast = user_input_features(movie_name)
-                st.success('Done!')
+                # st.success('Done!')
 
                 if df is None and path is None:
                     st.write(f"Cannot find your movie '{movie_name}', please write correct movie name")
@@ -248,13 +248,13 @@ def page1():
             if st.button("Get Revenue"):
                 if df is None and path is None:
                     st.write("Please provide a movie name")
-                else:                    
-                    output_results = {'Budget(US Dollar)': millify(df["budget"][0]),
-                              'Release Date': df["release_date"][0]}
-                    
-                    st.write(output_results)
-
-                    prediction = predict(st.session_state["pipeline"], df)   
+                else:
+                    with st.spinner('Wait for it...'):                    
+                        output_results = {'Budget(US Dollar)': millify(df["budget"][0]),
+                                'Release Date': df["release_date"][0]}                    
+                        st.write(output_results)
+                        prediction = predict(st.session_state["pipeline"], df) 
+                        st.success('Done!')  
         
 
         with col2:
