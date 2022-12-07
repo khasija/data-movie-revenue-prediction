@@ -7,6 +7,8 @@ import requests
 import shap
 import streamlit as st
 import altair as alt
+import time
+from datetime import datetime
 
 from typing import Tuple, Union
 
@@ -26,6 +28,33 @@ from python_files.genre_transformer import GenreTranformer
 MODEL_PATH = "model/xgb_model.pkl"
 import base64
 
+import math
+import base64
+
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
+        background-size: cover
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+    )
+
+
+millnames = ['',' Thousand',' Million',' Billion',' Trillion']
+
+def millify(n):
+    n = float(n)
+    millidx = max(0,min(len(millnames)-1,
+                        int(math.floor(0 if n == 0 else math.log10(abs(n))/3))))
+
+    return '{:.0f}{}'.format(n / 10**(3 * millidx), millnames[millidx])
 
 def load_pipeline():
     return pickle.load(open(MODEL_PATH, "rb"))
@@ -45,7 +74,7 @@ st.markdown("""
 
 def card_component(image, title, fun_fact):
     return f"""
-        <div class="card" style="width: 25rem;">
+        <div class="card" style="width: 25rem; background-color: rgba(220,220,220,0.2)">
         <img class="card-img-top" src={image} alt="Card image cap">
             <div class="card-body">
                 <h5 class="card-title-dark">{title}</h5>
@@ -97,11 +126,15 @@ def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tupl
         response = requests.get(url)
         director_names = []
         producer_names = []
+        actor_names = []
         director_number = 0
         producer_number = 0
         actor_number = 0
         for i in range(len(response.json()["cast"])):
             if response.json()["cast"][i]["known_for_department"].lower() == "acting":
+                if i < 6:
+                    actor_name = response.json()["cast"][i]["name"]
+                    actor_names.append(actor_name)
                 actor_number += 1
         for i in range(len(response.json()["crew"])):
             if response.json()["crew"][i]["job"].lower() == "director":
@@ -115,15 +148,16 @@ def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tupl
         df["director_number"] = director_number
         df["producer_number"] = producer_number
         df["actor_number"] = actor_number
+        actor_names = ', '.join(actor_names)     
         features = pd.DataFrame(df, index=["Value"])
 
-        return features, backdrop_path
+        return features, backdrop_path, actor_names
     except:
-        return None, None
+        return None, None, None
 
 
 def page1():
-
+    # add_bg_from_local('images/curtain_background.jpg') 
     tab1, tab2 = st.tabs(["Exitsing movies", "New movie"])
     with tab1:
         with st.container():
@@ -187,17 +221,26 @@ def page1():
         st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3, gap="small")
 
-        df, path = None, None
+        df, path, cast = None, None, None
         prediction = None
 
         with col1:
-            # st.header("Which movie's revenue do you want to predict?")
-            movie_name = st.selectbox("Which movie's revenue do you want to predict?",
-                                  ('Parasite', 'Once Upon a Time in Hollywood', 'Spider-Man: Far from Home'))
+            option = st.radio("Please enter a movie or select from the list",
+                            ('Enter Movie Name', 'Select from list'))
+            st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+
+            if(option == 'Enter Movie Name'):
+                movie_name = st.text_input("Which movie's revenue do you want to predict?")
+            elif(option == 'Select from list'):
+                movie_name = st.selectbox("Which movie's revenue do you want to predict?",
+                                    ('Parasite', 'Once Upon a Time in Hollywood', 'Aladdin', 'Nomadland'))
 
             if movie_name:
                 # st.write(movie_name)
-                df, path = user_input_features(movie_name)
+                
+                with st.spinner('Wait for it...'):
+                    df, path, cast = user_input_features(movie_name)
+                st.success('Done!')
 
                 if df is None and path is None:
                     st.write(f"Cannot find your movie '{movie_name}', please write correct movie name")
@@ -205,23 +248,22 @@ def page1():
             if st.button("Get Revenue"):
                 if df is None and path is None:
                     st.write("Please provide a movie name")
-                else:
-                    output_results = {'Budget(US Dollar)': df["budget"][0],
+                else:                    
+                    output_results = {'Budget(US Dollar)': millify(df["budget"][0]),
                               'Release Date': df["release_date"][0]}
                     
                     st.write(output_results)
 
-                    prediction = predict(st.session_state["pipeline"], df)       
+                    prediction = predict(st.session_state["pipeline"], df)   
+        
 
         with col2:
-            if movie_name:
-                df, path = user_input_features(movie_name)
-                if not df.empty:
+            if movie_name:                                          
+                if df is not None and path is not None:
                     st.write("Movie Poster")
-
                     st.markdown(card_component(image="https://image.tmdb.org/t/p/original/" + path, 
-                                               title= "Movie Poster", 
-                                               fun_fact= "While Bong Joon-ho is an exceptionally visual filmmaker, storyboarding his films intensely before it comes time to shoot the picture, Parasite initially wasn't conceived as a movie, believe it or not. ")
+                                               title= "Movie Cast", 
+                                               fun_fact= f"Actors : {cast}")
                                 , unsafe_allow_html=True)
                     
                     # st.image(
@@ -232,10 +274,10 @@ def page1():
         with col3:
 
             if prediction is not None:
-                st.write("Acutal vs. Predicted Revenue")
+                st.write("Acutal vs. Predicted Revenue") 
                 
-                act_vs_pred = {"Actual Revenue":  df["Revenue"][0],
-                       "Predicted Revenue": np.expm1(prediction[0])}
+                act_vs_pred = {"Actual Revenue":  millify(df["Revenue"][0]),
+                       "Predicted Revenue": millify(np.expm1(prediction[0]))}
                 
                 st.write(act_vs_pred)
                 
