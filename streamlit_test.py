@@ -20,6 +20,16 @@ import base64
 def load_pipeline():
     return pickle.load(open(MODEL_PATH, "rb"))
 
+def card_component(image, title, fun_fact):
+    return f"""
+        <div class="card" style="width: 25rem;">
+        <img class="card-img-top" src={image} alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title-dark">{title}</h5>
+                <p class="card-text-dark">{fun_fact}</p>                
+            </div>
+        </div>
+        """
 
 def predict(pipeline, data):
     return pipeline.predict(data)
@@ -40,7 +50,7 @@ st.markdown("""
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
             """, unsafe_allow_html = True)
 st.markdown("""
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark position-sticky">
         <a class="navbar-brand" href="#">Alchemy</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -194,6 +204,7 @@ with tab1:
             st.write("Please write correct movie name")
             return pd.DataFrame()
 
+    st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
         
@@ -225,42 +236,38 @@ with tab1:
             if movie_name:
                 df, path = user_input_features(movie_name)
                 if not df.empty:
-                    # st.header("Specified Input parameters")
-                    # st.write(df)
-                    # st.write("---")
+                    st.write("Movie Poster")
 
-                    prediction = predict(st.session_state["pipeline"], df)
-                    revenue = df["Revenue"]
-                    _revenue = [revenue[0]]
-                    # st.header("Prediction of Revenue")
-                    prediction = np.expm1(prediction)
-                    _prediction = [prediction[0]]
-                    st.image(
-                        "https://image.tmdb.org/t/p/original/" + path,
-                        width=400,  # Manually Adjust the width of the image as per requirement
-                    )
-                    # st.write(prediction[0])
-                    # st.write(revenue)
-                    # fig = {"Revenue": [revenue[0]], "Prediction": [prediction[0]]}
-                    # fig2=pd.DataFrame(fig).T
-                    # st.bar_chart(data = fig2)
-                    # st.write(fig2)
-
-                    # st.subheader("Budget(US Dollar)")
-                    # st.subheader(df["budget"][0])
-
-                    # st.subheader("Release Date")
-                    # st.subheader(df["release_date"][0])
+                    st.markdown(card_component(image="https://image.tmdb.org/t/p/original/" + path, 
+                                               title= "Movie Poster", 
+                                               fun_fact= "While Bong Joon-ho is an exceptionally visual filmmaker, storyboarding his films intensely before it comes time to shoot the picture, Parasite initially wasn't conceived as a movie, believe it or not. ")
+                                , unsafe_allow_html=True)
+                    
+                    # st.image(
+                    #     "https://image.tmdb.org/t/p/original/" + path,
+                    #     width=400  # Manually Adjust the width of the image as per requirement
+                    # )
+                    
 
     with col3:
-        st.header("Prediction of Revenue")
-        st.subheader(_prediction)
-        #    revenue = df["Revenue"]
-        #    st.header("Prediction of Revenue")
-        #    prediction = np.expm1(prediction)
-        #    st.write(prediction[0])
-        #    st.write(revenue)
-        fig = {"Revenue": _revenue, "Prediction": _prediction}
+        prediction = predict(st.session_state["pipeline"], df)
+        
+        # revenue
+        revenue = df["Revenue"]
+        _revenue = [revenue[0]]
+        
+        # predictions
+        prediction = np.expm1(prediction)
+        _prediction = [prediction[0]]
+        
+        # graph
+        st.write("Acutal vs. Predicted Revenue")
+        act_vs_pred = {"Actual Revenue": _revenue[0],
+                       "Predicted Revenue": _prediction[0]}
+        st.write(act_vs_pred)
+        
+        fig = {"Actual": _revenue, "Prediction": _prediction}
+        
         fig2 = pd.DataFrame(fig, index = [0]).T
         st.bar_chart(data=fig2)
     #  st.write(fig2)
