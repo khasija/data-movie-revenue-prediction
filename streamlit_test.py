@@ -38,8 +38,21 @@ def predict(pipeline, data):
 def init_state():
     if "pipeline" not in st.session_state:
         st.session_state["pipeline"] = load_pipeline()
+# Navigation bar
+st.markdown("""
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            """, unsafe_allow_html = True)
 
-
+def card_component(image, title, fun_fact):
+    return f"""
+        <div class="card" style="width: 25rem;">
+        <img class="card-img-top" src={image} alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title-dark">{title}</h5>
+                <p class="card-text-dark">{fun_fact}</p>                
+            </div>
+        </div>
+        """
 def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tuple[None, None]]:
     try:
         # raise ValueError("fake error")
@@ -123,7 +136,7 @@ def page1():
                         """,
                 unsafe_allow_html=True,
             )
-            st.markdown('<p class="big-font">Believe the RMSE ...</p>', unsafe_allow_html=True)
+            st.markdown('<p class="big-font">Life is too short for ordinary apps.</p>', unsafe_allow_html=True)
             st.markdown(
                 """
                         <style>
@@ -170,15 +183,17 @@ def page1():
         #     '<p style="font-family:Courier; color:Black; font-size: 30px;">This app predicts the Movie Revenue!</p>'
         # )
         # st.markdown(original_title, unsafe_allow_html=True)
-
+        
+        st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3, gap="small")
 
         df, path = None, None
         prediction = None
 
         with col1:
-            st.header("Which movie's revenue do you want to predict?")
-            movie_name = col1.text_input("")
+            # st.header("Which movie's revenue do you want to predict?")
+            movie_name = st.selectbox("Which movie's revenue do you want to predict?",
+                                  ('Parasite', 'Once Upon a Time in Hollywood', 'Spider-Man: Far from Home'))
 
             if movie_name:
                 # st.write(movie_name)
@@ -191,29 +206,42 @@ def page1():
                 if df is None and path is None:
                     st.write("Please provide a movie name")
                 else:
-                    st.subheader("Budget(US Dollar):")
-                    st.subheader(df["budget"][0])
-                    st.subheader("Release Date:")
-                    st.subheader(df["release_date"][0])
+                    output_results = {'Budget(US Dollar)': df["budget"][0],
+                              'Release Date': df["release_date"][0]}
+                    
+                    st.write(output_results)
 
-                    prediction = predict(st.session_state["pipeline"], df)
+                    prediction = predict(st.session_state["pipeline"], df)       
 
         with col2:
+            if movie_name:
+                df, path = user_input_features(movie_name)
+                if not df.empty:
+                    st.write("Movie Poster")
 
-            if df is not None and path is not None:
-                st.image(
-                    "https://image.tmdb.org/t/p/original/" + path,
-                    width=400,  # Manually Adjust the width of the image as per requirement
-                )
+                    st.markdown(card_component(image="https://image.tmdb.org/t/p/original/" + path, 
+                                               title= "Movie Poster", 
+                                               fun_fact= "While Bong Joon-ho is an exceptionally visual filmmaker, storyboarding his films intensely before it comes time to shoot the picture, Parasite initially wasn't conceived as a movie, believe it or not. ")
+                                , unsafe_allow_html=True)
+                    
+                    # st.image(
+                    #     "https://image.tmdb.org/t/p/original/" + path,
+                    #     width=400  # Manually Adjust the width of the image as per requirement
+                    # )
 
         with col3:
 
             if prediction is not None:
-                st.header("Prediction of Revenue")
-                st.subheader(prediction[0])
+                st.write("Acutal vs. Predicted Revenue")
+                
+                act_vs_pred = {"Actual Revenue":  df["Revenue"][0],
+                       "Predicted Revenue": np.expm1(prediction[0])}
+                
+                st.write(act_vs_pred)
+                
 
-                fig = {"Revenue": df["Revenue"][0], "Prediction": prediction[0]}
-                fig2 = pd.DataFrame(fig).T
+                fig = {"Revenue": df["Revenue"][0], "Prediction": np.expm1(prediction[0])}
+                fig2 = pd.DataFrame(fig, index = [0]).T
                 st.bar_chart(data=fig2)
 
 
