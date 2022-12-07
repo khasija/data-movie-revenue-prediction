@@ -7,16 +7,8 @@ import requests
 import shap
 import streamlit as st
 import altair as alt
-
-st.set_page_config(
-    page_title="Alchemy", page_icon=":)", layout="wide", initial_sidebar_state="expanded", menu_items=None
-)
-
-st.set_option("deprecation.showPyplotGlobalUse", False)
 import pickle
-
 import numpy as np
-
 from python_files.cast_transformer import CastTransformer
 from python_files.dataframe_transformer import DataframeTransformer
 from python_files.genre_transformer import GenreTranformer
@@ -36,10 +28,47 @@ def predict(pipeline, data):
 if "pipeline" not in st.session_state:
     st.session_state["pipeline"] = load_pipeline()
 
+# Set Page Options   
+st.set_page_config(
+    page_title="Alchemy", page_icon=":)", layout="wide", initial_sidebar_state="expanded", menu_items=None
+)
+
+st.set_option("deprecation.showPyplotGlobalUse", False)
+
+# Navigation bar
+st.markdown("""
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            """, unsafe_allow_html = True)
+st.markdown("""
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Alchemy</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">New Movies</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Pricing</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#">Disabled</a>
+            </li>
+            </ul>
+        </div>
+    </nav>
+    """, unsafe_allow_html = True)
+
 
 tab1, tab2 = st.tabs(["Exitsing movies", "New movie"])
-with tab1:
+with tab1:    
     with st.container():
+        # st.title('Predict with confidence')
         st.markdown(
             """
                     <style>
@@ -49,7 +78,7 @@ with tab1:
                     """,
             unsafe_allow_html=True,
         )
-        st.markdown('<p class="big-font">Believe the RMSE ...</p>', unsafe_allow_html=True)
+        st.markdown('<p class="big-font">Life is too short for ordinary apps.</p>', unsafe_allow_html=True)
         st.markdown(
             """
                     <style>
@@ -167,16 +196,27 @@ with tab1:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.header("Which movie's revenue do you want to predict?")
-        movie_name = col1.text_input("")
-        df, path = user_input_features(movie_name)
-        col1 = st.button("Get Revenue")
-
-        st.subheader("Budget(US Dollar):")
-        st.subheader(df["budget"][0])
-        st.subheader("Release Date:")
-        st.subheader(df["release_date"][0])
-
+        
+        # st.write("Which movie's revenue do you want to predict?")
+        movie_name = st.selectbox("Which movie's revenue do you want to predict?",
+                                  ('Parasite', 'Once Upon a Time in Hollywood', 'Spider-Man: Far from Home'))
+        if movie_name: 
+            df, path = user_input_features(movie_name)
+            col1 = st.button("Get Revenue")
+            
+            output_results = {'Budget(US Dollar)': df["budget"][0],
+                              'Release Date': df["release_date"][0]
+                }
+            
+            # output_df = pd.DataFrame(output_results.items())
+            # st.table(output_results)
+            st.write(output_results)
+            # st.write("Budget(US Dollar):")
+            # st.write(df["budget"][0])
+            # st.write("Release Date:")
+            # st.write(df["release_date"][0])
+        else: pass              
+        
     _prediction = 0
     _revenue = 0
     with col2:
@@ -214,14 +254,14 @@ with tab1:
 
     with col3:
         st.header("Prediction of Revenue")
-        st.subheader(prediction[0])
+        st.subheader(_prediction)
         #    revenue = df["Revenue"]
         #    st.header("Prediction of Revenue")
         #    prediction = np.expm1(prediction)
         #    st.write(prediction[0])
         #    st.write(revenue)
         fig = {"Revenue": _revenue, "Prediction": _prediction}
-        fig2 = pd.DataFrame(fig).T
+        fig2 = pd.DataFrame(fig, index = [0]).T
         st.bar_chart(data=fig2)
     #  st.write(fig2)
 
