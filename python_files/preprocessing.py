@@ -70,10 +70,13 @@ class Advancedprocessing:
         df_copy["release_month"] = df_copy["release_date"].dt.month
 
         # add week
-        df_copy["release_week"] = df_copy["release_date"].dt.isocalendar().week
-        df_copy["week_sin"] = np.sin(2 * np.pi * df_copy["release_week"] / 52.0)
-        df_copy["week_cos"] = np.cos(2 * np.pi * df_copy["release_week"] / 52.0)
-
+        df_copy['release_week'] = df_copy['release_date'].dt.isocalendar().week
+        df_copy['week_sin'] = np.sin(2 * np.pi * df_copy['release_week']/52.0)
+        df_copy['week_cos'] = np.cos(2 * np.pi * df_copy['release_week']/52.0)
+        
+        df_copy[['week_sin','week_cos']] = df_copy[['week_sin','week_cos']].astype('float64')
+        df_copy[['week_sin','week_cos']] = df_copy[['week_sin','week_cos']].astype('float64')
+        
         # df_copy[['week_sin', 'week_cos']].astype('float64', inplace = True)
 
         # add weekday
