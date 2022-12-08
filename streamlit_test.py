@@ -312,11 +312,11 @@ def page1():
         prediction = my_pipeline1.predict(features)
         col1, col2, col3 = st.columns(3)
         with col2:
-            st.header('Predicted Revenue')
+            st.header('')
 
             prediction = np.expm1(prediction[0])
-            prediction = {"Predicted Revenue": millify(prediction)}
-            st.write(prediction)
+            prediction = f"Predicted Revenue: {millify(prediction)}"
+            st.subheader(prediction)
 
 if __name__ == "__main__":
     init_state()
