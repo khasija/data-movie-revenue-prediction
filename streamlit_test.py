@@ -194,7 +194,7 @@ def page1():
                         """,
                 unsafe_allow_html=True,
             )
-            st.markdown('<p class="big-font2" style="color:#0003d5">#FastForwardYourFuture</p>', unsafe_allow_html=True)
+            st.markdown('<p class="big-font2" >#FastForwardYourFuture</p>', unsafe_allow_html=True)
 
 
         st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
