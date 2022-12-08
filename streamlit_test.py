@@ -119,6 +119,7 @@ def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tupl
         df["vote_count"] = int(response.json()["vote_count"])
         df["belongs_to_collection"] = response.json()["belongs_to_collection"]
         df["Revenue"] = response.json()["revenue"]
+        overview = response.json()['overview']
 
         url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key=279ec8b5e677bfd655c30c6403e14469"
 
@@ -148,10 +149,18 @@ def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tupl
         df["director_number"] = director_number
         df["producer_number"] = producer_number
         df["actor_number"] = actor_number
-        actor_names = ', '.join(actor_names)     
         features = pd.DataFrame(df, index=["Value"])
+        
+        actor_names = ', '.join(actor_names)
+        director_names = ', '.join(director_names)
+        producer_names = ', '.join(producer_names) 
+        
+        summary = f"""Overview: {overview}\n
+                Actors: {actor_names} 
+            Directors: {director_names} 
+            Producers: {producer_names}"""
 
-        return features, backdrop_path, actor_names
+        return features, backdrop_path, summary
     except:
         return None, None, None
 
@@ -166,7 +175,8 @@ def page1():
                         <style>
                         .big-font {
                         font-size:130px !important;
-                        } </style>
+                        } 
+                        </style>
                         """,
                 unsafe_allow_html=True,
             )
@@ -180,7 +190,7 @@ def page1():
                         """,
                 unsafe_allow_html=True,
             )
-            st.markdown('<p class="big-font2">#FastForwardYourFuture</p>', unsafe_allow_html=True)
+            st.markdown('<p class="big-font2" style="color:#0003d5">#FastForwardYourFuture</p>', unsafe_allow_html=True)
 
             # You can call any Streamlit command, including custom components:
             # st.bar_chart(np.random.randn(50, 3))
@@ -221,7 +231,7 @@ def page1():
         st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3, gap="small")
 
-        df, path, cast = None, None, None
+        df, path, summary = None, None, None
         prediction = None
 
         with col1:
@@ -239,7 +249,7 @@ def page1():
                 # st.write(movie_name)
                 
                 with st.spinner('Wait for it...'):
-                    df, path, cast = user_input_features(movie_name)
+                    df, path, summary = user_input_features(movie_name)
                 # st.success('Done!')
 
                 if df is None and path is None:
@@ -262,8 +272,8 @@ def page1():
                 if df is not None and path is not None:
                     st.write("Movie Poster")
                     st.markdown(card_component(image="https://image.tmdb.org/t/p/original/" + path, 
-                                               title= "Movie Cast", 
-                                               fun_fact= f"Actors : {cast}")
+                                               title= "Movie Overview", 
+                                               fun_fact= f"{summary}")
                                 , unsafe_allow_html=True)
                     
                     # st.image(
