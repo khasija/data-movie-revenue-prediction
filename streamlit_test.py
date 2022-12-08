@@ -20,12 +20,14 @@ st.set_option("deprecation.showPyplotGlobalUse", False)
 import pickle
 
 import numpy as np
-
+from python_files.cast_transformer2 import CastTransformer2
 from python_files.cast_transformer import CastTransformer
 from python_files.dataframe_transformer import DataframeTransformer
 from python_files.genre_transformer import GenreTranformer
 
 MODEL_PATH = "model/xgb_model.pkl"
+MODEL_PATH2 = "model/xgb_model2.pkl"
+
 import base64
 
 import math
@@ -59,6 +61,8 @@ def millify(n):
 def load_pipeline():
     return pickle.load(open(MODEL_PATH, "rb"))
 
+def load_pipeline2():
+    return pickle.load(open(MODEL_PATH2, "rb"))
 
 def predict(pipeline, data):
     return pipeline.predict(data)
@@ -78,7 +82,7 @@ def card_component(image, title, fun_fact):
         <img class="card-img-top" src={image} alt="Card image cap">
             <div class="card-body">
                 <h5 class="card-title-dark">{title}</h5>
-                <p class="card-text-dark">{fun_fact}</p>                
+                <p class="card-text-dark">{fun_fact}</p>
             </div>
         </div>
         """
@@ -150,14 +154,14 @@ def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tupl
         df["producer_number"] = producer_number
         df["actor_number"] = actor_number
         features = pd.DataFrame(df, index=["Value"])
-        
+
         actor_names = ', '.join(actor_names)
         director_names = ', '.join(director_names)
-        producer_names = ', '.join(producer_names) 
-        
-        summary = f"""Overview: {overview}\n
-                Actors: {actor_names} 
-            Directors: {director_names} 
+        producer_names = ', '.join(producer_names)
+
+        summary = f"""{overview}\n
+                Actors: {actor_names}
+            Directors: {director_names}
             Producers: {producer_names}"""
 
         return features, backdrop_path, summary
@@ -166,7 +170,7 @@ def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tupl
 
 
 def page1():
-    # add_bg_from_local('images/curtain_background.jpg') 
+    # add_bg_from_local('images/curtain_background.jpg')
     tab1, tab2 = st.tabs(["Exitsing movies", "New movie"])
     with tab1:
         with st.container():
@@ -174,60 +178,25 @@ def page1():
                 """
                         <style>
                         .big-font {
-                        font-size:130px !important;
-                        } 
+                        font-size:70px !important;
+                        }
                         </style>
                         """,
                 unsafe_allow_html=True,
             )
-            st.markdown('<p class="big-font">Life is too short for ordinary apps.</p>', unsafe_allow_html=True)
+            st.markdown('<p class="big-font">Life is too short for ordinary apps!</p>', unsafe_allow_html=True)
             st.markdown(
                 """
                         <style>
                         .big-font2 {
-                        font-size:100px !important;
+                        font-size:40px !important;
                         } </style>
                         """,
                 unsafe_allow_html=True,
             )
             st.markdown('<p class="big-font2" style="color:#0003d5">#FastForwardYourFuture</p>', unsafe_allow_html=True)
 
-            # You can call any Streamlit command, including custom components:
-            # st.bar_chart(np.random.randn(50, 3))
 
-        # @st.cache
-        # def load_image(path):
-        #     with open(path, 'rb') as f:
-        #         data = f.read()
-        #     encoded = base64.b64encode(data).decode()
-        #     return encoded
-
-        # def image_tag(path):
-        #     encoded = load_image(path)
-        #     tag = f'<img src="data:image/jpeg;base64,{encoded}">'
-        #     return tag
-
-        # def background_image_style(path):
-        #     encoded = load_image(path)
-        #     style = f'''
-        #     <style>
-        #     .stApp {{
-        #         background-image: url("data:image/jpeg;base64,{encoded}");
-        #         background-size: cover;
-        #     }}
-        #     </style>
-        #     '''
-        #     return style
-
-        # image_path = 'images/cinema-1269996.jpg'
-
-        # st.write(background_image_style(image_path), unsafe_allow_html=True)
-
-        # original_title = (
-        #     '<p style="font-family:Courier; color:Black; font-size: 30px;">This app predicts the Movie Revenue!</p>'
-        # )
-        # st.markdown(original_title, unsafe_allow_html=True)
-        
         st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3, gap="small")
 
@@ -247,7 +216,7 @@ def page1():
 
             if movie_name:
                 # st.write(movie_name)
-                
+
                 with st.spinner('Wait for it...'):
                     df, path, summary = user_input_features(movie_name)
                 # st.success('Done!')
@@ -259,43 +228,95 @@ def page1():
                 if df is None and path is None:
                     st.write("Please provide a movie name")
                 else:
-                    with st.spinner('Wait for it...'):                    
+                    with st.spinner('Wait for it...'):
                         output_results = {'Budget(US Dollar)': millify(df["budget"][0]),
-                                'Release Date': df["release_date"][0]}                    
+                                'Release Date': df["release_date"][0]}
                         st.write(output_results)
-                        prediction = predict(st.session_state["pipeline"], df) 
-                        st.success('Done!')  
-        
+                        prediction = predict(st.session_state["pipeline"], df)
+                        st.success('Done!')
+
 
         with col2:
-            if movie_name:                                          
+            if movie_name:
                 if df is not None and path is not None:
                     st.write("Movie Poster")
-                    st.markdown(card_component(image="https://image.tmdb.org/t/p/original/" + path, 
-                                               title= "Movie Overview", 
+                    st.markdown(card_component(image="https://image.tmdb.org/t/p/original/" + path,
+                                               title= "Movie Overview",
                                                fun_fact= f"{summary}")
                                 , unsafe_allow_html=True)
-                    
-                    # st.image(
-                    #     "https://image.tmdb.org/t/p/original/" + path,
-                    #     width=400  # Manually Adjust the width of the image as per requirement
-                    # )
 
         with col3:
 
             if prediction is not None:
-                st.write("Acutal vs. Predicted Revenue") 
-                
+                st.write("Acutal vs. Predicted Revenue")
+
                 act_vs_pred = {"Actual Revenue":  millify(df["Revenue"][0]),
                        "Predicted Revenue": millify(np.expm1(prediction[0]))}
-                
+
                 st.write(act_vs_pred)
-                
 
-                fig = {"Revenue": df["Revenue"][0], "Prediction": np.expm1(prediction[0])}
-                fig2 = pd.DataFrame(fig, index = [0]).T
-                st.bar_chart(data=fig2)
 
+                # fig = {"Revenue": df["Revenue"][0], "Prediction": np.expm1(prediction[0])}
+                # fig2 = pd.DataFrame(fig, index = [0]).T
+                # st.bar_chart(data=fig2)
+                source = pd.DataFrame({
+                    'Revenue': ['Actual', 'Prediction'],
+                    'Legend': ['Actual', 'Prediction'],
+                    'US Dollar':[df["Revenue"][0], np.expm1(prediction[0])]
+                })
+                chart = alt.Chart(source).mark_bar().encode(
+                    x='Revenue',
+                    y='US Dollar',
+                    color=alt.Color('Legend', legend=None)
+                )
+                st.altair_chart(chart, use_container_width=True)
+    with tab2:
+        # st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            df= {}
+            df['budget'] = st.slider('Select the budget in million USD', 10, 250, 100)*1000000
+            df['runtime'] = st.slider('How long you want the movie to be?', 20, 180, 90)
+            df['release_date'] = st.date_input("Which date do you want to release the movie?")
+        with col2:
+            df['actor_number'] = st.slider('How many lead actors you want to take in the movie?', 1, 100, 5)
+            df['production_countries_number'] = st.slider('How many countries are producing the movie?', 1, 10 , 2)
+            df['producer_number'] = st.slider('How many producers are there?', 1, 10, 3)
+        with col3:
+            belongs_to_collection = st.selectbox("Do you want to make a sequel?",
+                                    ('Yes', 'No'))
+            if belongs_to_collection == 'Yes':
+                df['belongs_to_collection'] = 1
+            else:
+                df['belongs_to_collection'] = None
+            options = st.multiselect(
+                'What are your favorite colors',
+                ['Drama', 'Family', 'Romance', 'Music', 'History', 'Action', 'Comedy', 'Horror', 'Thriller', 'War', 'Adventure', 'Documentary', 'Foreign', 'Fantasy', 'Crime', 'Animation', 'Science Fiction', 'Mystery', 'Western', 'TV Movie'],
+                ['Drama', 'Comedy'])
+            df['genres'] = '|'.join(options)
+
+        df['production_companies_number'] = None
+        df['production_companies'] = None
+        df['production_countries'] = None
+        df['popularity'] = None
+        df['vote_average'] = None
+        df['vote_count'] = None
+        df['director_number'] = None
+        df['producer_name'] = None
+        df['actor1_name'] = None
+        df['actor2_name'] = None
+        df['director_name'] = None
+        features = pd.DataFrame(df, index=['Value'])
+        my_pipeline1 = pickle.load(open("model/xgb_model2.pkl","rb"))
+        # if st.button('predict'):
+        prediction = my_pipeline1.predict(features)
+        col1, col2, col3 = st.columns(3)
+        with col2:
+            st.header('Predicted Revenue')
+
+            prediction = np.expm1(prediction[0])
+            prediction = {"Predicted Revenue": millify(prediction)}
+            st.write(prediction)
 
 if __name__ == "__main__":
     init_state()
