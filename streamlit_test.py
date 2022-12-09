@@ -217,29 +217,30 @@ def page1():
             if movie_name:
                 # st.write(movie_name)
 
-                with st.spinner('Wait for it...'):
+                with st.spinner('Wait for it...Getting movie details'):
                     df, path, summary = user_input_features(movie_name)
-                # st.success('Done!')
+                    # st.success('')
 
-                if df is None and path is None:
-                    st.write(f"Cannot find your movie '{movie_name}', please write correct movie name")
+                    if df is None and path is None:
+                        st.write(f"Cannot find your movie '{movie_name}', please write correct movie name")
 
-            if st.button("Get Revenue"):
-                if df is None and path is None:
-                    st.write("Please provide a movie name")
-                else:
-                    with st.spinner('Wait for it...'):
-                        output_results = {'Budget(US Dollar)': millify(df["budget"][0]),
-                                'Release Date': df["release_date"][0]}
-                        st.write(output_results)
-                        prediction = predict(st.session_state["pipeline"], df)
-                        st.success('Done!')
+                    if st.button("Get Revenue"):
+                        if df is None and path is None:
+                            st.write("Please provide a movie name")
+                        else:
+                            with st.spinner('Wait for it...Fetching model parameters'):
+                                st.write('Showing small subset of the fetched parameters:')
+                                output_results = {'Budget(US Dollar)': millify(df["budget"][0]),
+                                        'Release Date': df["release_date"][0]}
+                                st.write(output_results)
+                                prediction = predict(st.session_state["pipeline"], df)
+                                st.success('Done!')
 
 
         with col2:
             if movie_name:
                 if df is not None and path is not None:
-                    st.write("Movie Poster")
+                    # st.write("Movie Poster")
                     st.markdown(card_component(image="https://image.tmdb.org/t/p/original/" + path,
                                                title= "Movie Overview",
                                                fun_fact= f"{summary}")
@@ -248,12 +249,14 @@ def page1():
         with col3:
 
             if prediction is not None:
-                st.write("Acutal vs. Predicted Revenue")
-
-                act_vs_pred = {"Actual Revenue":  millify(df["Revenue"][0]),
-                       "Predicted Revenue": millify(np.expm1(prediction[0]))}
-
-                st.write(act_vs_pred)
+                st.header("Predicted vs. Actual Revenue")
+                act_0 = df["Revenue"][0]
+                pred_0 = np.expm1(prediction[0])
+                dif_per = round(100*(pred_0 - act_0)/act_0,2)
+                dif_per_print = f"Percentage Difference: {dif_per}%"
+                st.markdown(f"""
+                #### <span style="color:yellow">{dif_per_print}</span>
+                """,  unsafe_allow_html=True)
 
 
                 # fig = {"Revenue": df["Revenue"][0], "Prediction": np.expm1(prediction[0])}
