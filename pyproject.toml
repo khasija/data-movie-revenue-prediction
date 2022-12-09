@@ -24,6 +24,7 @@ jupyter = "^1.0.0"
 imdbpy = "^2022.7.9"
 black = "^22.10.0"
 isort = "^5.10.1"
+streamlit-extras = "^0.2.4"
 
 [build-system]
 requires = ["poetry-core"]

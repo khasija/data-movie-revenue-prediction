@@ -19,6 +19,8 @@ st.set_page_config(
 st.set_option("deprecation.showPyplotGlobalUse", False)
 import pickle
 
+from streamlit_extras.no_default_selectbox import selectbox as extra_selectbox
+
 import numpy as np
 from python_files.cast_transformer2 import CastTransformer2
 from python_files.cast_transformer import CastTransformer
@@ -222,9 +224,9 @@ def page1():
             if option == "Enter Movie Name":
                 movie_name = st.text_input("Which movie's revenue do you want to predict?")
             elif option == "Select from list":
-                movie_name = st.selectbox(
+                movie_name = extra_selectbox(  # st.selectbox(
                     "Which movie's revenue do you want to predict?",
-                    ("Parasite", "Once Upon a Time in Hollywood", "Aladdin", "Nomadland"),
+                    ["Parasite", "Once Upon a Time in Hollywood", "Aladdin", "Nomadland"],
                 )
 
             if movie_name:
