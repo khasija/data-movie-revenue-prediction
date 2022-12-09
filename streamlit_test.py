@@ -82,8 +82,7 @@ def card_component(image, title, fun_fact):
         <img class="card-img-top" src={image} alt="Card image cap">
             <div class="card-body">
                 <h5 class="card-title-dark">{title}</h5>
-                <p class="card-text-dark">{fun_fact}</p>
-            </div>
+                <p class="card-text-dark">{fun_fact}
         </div>
         """
 def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tuple[None, None]]:
