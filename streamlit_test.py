@@ -70,7 +70,7 @@ def predict(pipeline, data):
 
 def init_state():
     if "pipeline" not in st.session_state:
-        st.session_state["pipeline"] = load_pipeline()
+        st.session_state["pipeline"] = load_pipeline2()
 # Navigation bar
 st.markdown("""
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
