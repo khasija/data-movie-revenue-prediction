@@ -26,7 +26,7 @@ from python_files.dataframe_transformer import DataframeTransformer
 from python_files.genre_transformer import GenreTranformer
 
 MODEL_PATH = "model/xgb_model.pkl"
-MODEL_PATH2 = "model/xgb_model2.pkl"
+MODEL_PATH2 = "model/xgb_model3.pkl"
 
 import base64
 
@@ -150,6 +150,8 @@ def user_input_features(movie_name: str) -> Union[Tuple[pd.DataFrame, str], Tupl
         df["director_name"] = director_names[0]
         df["producer_name"] = producer_names[0]
         df["director_number"] = director_number
+        df["actor1_name"] = actor_names[0]
+        df["actor2_name"] = actor_names[1]
         df["producer_number"] = producer_number
         df["actor_number"] = actor_number
         features = pd.DataFrame(df, index=["Value"])
@@ -309,7 +311,7 @@ def page1():
         df['actor2_name'] = None
         df['director_name'] = None
         features = pd.DataFrame(df, index=['Value'])
-        my_pipeline1 = pickle.load(open("model/xgb_model2.pkl","rb"))
+        my_pipeline1 = pickle.load(open("model/xgb_model3.pkl","rb"))
         # if st.button('predict'):
         prediction = my_pipeline1.predict(features)
         col1, col2, col3 = st.columns(3)
